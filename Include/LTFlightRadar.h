@@ -46,7 +46,7 @@ constexpr int FR_ORIGIN        = 11;              // origin
 constexpr int FR_DESTINATION   = 12;              // destination
 constexpr int FR_FLIGHT_NR     = 13;              // flight number
 constexpr int FR_VERT_SPD      = 15;              // vertical speed
-constexpr int FR_CALL          = 16;              // callsign
+constexpr int FR_CALL          = 16;              // call sign
 constexpr int FR_AIRLINE       = 18;              // airline
                                                   
 class FlightRadarConnection : public LTFlightDataChannel

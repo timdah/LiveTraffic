@@ -102,7 +102,6 @@ std::string FlightRadarConnection::GetURL (const positionTy& pos)
              box.nw.lon(),              // lomin
              box.se.lon() );            // lomax
     std::string result = std::string(url);
-    LOG_MSG(logINFO, result.c_str());
     return result;
 }
 
@@ -130,11 +129,9 @@ bool FlightRadarConnection::ProcessFetchedData()
     double now = dataRefs.GetSimTime();
 
     // Remove the full_count and version fields
-    LOG_MSG(logINFO, "before remove");
     json_object_remove(pObj, "full_count");
     json_object_remove(pObj, "version");
-    LOG_MSG(logINFO, "after remove");
-    
+
     // Iterate over each aircraft in the JSON object
     for (size_t i=0; i < json_object_get_count(pObj); i++) 
     {
@@ -161,29 +158,41 @@ bool FlightRadarConnection::ProcessFetchedData()
             double lat            = jag_n_nan(pJAc, FR_LAT);
             double lon            = jag_n_nan(pJAc, FR_LON);
             double track          = jag_n_nan(pJAc, FR_HEADING);
-            double alt            = jag_n_nan(pJAc, FR_CALC_ALT);
+            double baroAlt_ft     = jag_n_nan(pJAc, FR_CALC_ALT);
             double speed          = jag_n_nan(pJAc, FR_SPD);
             double vertSpeed      = jag_n_nan(pJAc, FR_VERT_SPD);
-            double posTime        = jag_n_nan(pJAc, FR_VERT_SPD);
+            double posTime        = jag_n_nan(pJAc, FR_POS_TIME);
+
+            // Discard incomplete core AC data
+            if (
+                    icao.empty() ||
+                    isnan(lat) ||
+                    isnan(lon) ||
+                    isnan(track) ||
+                    isnan(baroAlt_ft) ||
+                    isnan(posTime) ||
+                    isnan(speed)
+                )
+                continue;
+
+            // Discard data older than simulation time
+            if (posTime <= now)
+                continue;
 
             // Create the fdKey
             LTFlightData::FDKeyTy fdKey(LTFlightData::KEY_ICAO, icao);
 
             // AC on ground?
-            bool onGround = alt <= 20; // random threshold. fr24 sets alt to 0 on ground
-            
-            // Try getting best possible position information
-            positionTy acPos(lat, lon, alt * M_per_FT, now, track);
+            bool onGround = baroAlt_ft <= 20; // random threshold. fr24 sets alt to 0 on ground
+
+            // Position information
+            const double geoAlt_ft = BaroAltToGeoAlt_ft(baroAlt_ft, dataRefs.GetPressureHPA());
+            positionTy acPos(lat, lon, geoAlt_ft * M_per_FT, posTime, track);
             acPos.f.onGrnd = onGround ? GND_ON : GND_OFF;
             acPos.heading() = track;
 
             // Calculate the distance to the camera
             double dist = acPos.dist(viewPos);
-            LOG_MSG(logINFO,acPos.dbgTxt().c_str());
-
-            // Skip if outside the desired range
-            // if (dist > dataRefs.GetFdStdDistance_m())
-            //     continue;
 
             // Access fdMap guarded by a mutex
             std::unique_lock<std::mutex> mapFdLock (mapFdMutex);
@@ -221,7 +230,7 @@ bool FlightRadarConnection::ProcessFetchedData()
             fd.UpdateData(std::move(stat), dist);
 
             // Add dynamic data if position is valid
-            if (acPos.isNormal(true)) {
+            if (acPos.isNormal(false)) {
                 fd.AddDynData(dyn, 0, 0, &acPos);
             }
             else {
