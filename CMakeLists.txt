@@ -159,6 +159,7 @@ set(Header_Files
     Include/LTApt.h
     Include/LTChannel.h
     Include/LTFlightData.h
+    Include/LTFlightRadar.h
     Include/LTForeFlight.h
     Include/LTFSCharter.h
     Include/LTImgWindow.h
@@ -203,6 +204,7 @@ set(Source_Files
     Src/LTApt.cpp
     Src/LTChannel.cpp
     Src/LTFlightData.cpp
+    Src/LTFlightRadar.cpp
     Src/LTForeFlight.cpp
     Src/LTFSCharter.cpp
     Src/LTImgWindow.cpp

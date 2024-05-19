@@ -142,6 +142,7 @@ extern DataRefs dataRefs;
 #include "LTOpenGlider.h"
 #include "LTFSCharter.h"
 #include "LTSynthetic.h"
+#include "LTFlightRadar.h"
 
 //MARK: Global Control functions
 bool LTMainInit ();

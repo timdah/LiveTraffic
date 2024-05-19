@@ -264,6 +264,28 @@ void LTSettingsUI::buildInterface()
                 if (!*sFilter) ImGui::TreePop();
             }
 
+            // --- flightradar24 ---
+            if (ImGui::TreeNodeCbxLinkHelp("flightradar24", nCol,
+                                           DR_CHANNEL_FLIGHT_RADAR_ONLINE, "Connect to flightradar24 for tracking data",
+                                           ICON_FA_EXTERNAL_LINK_SQUARE_ALT " " FR_CHECK_NAME,
+                                           FR_CHECK_URL,
+                                           FR_CHECK_POPUP,
+                                           HELP_SET_CH_ADSBFI, "ToDo",
+                                           sFilter, nOpCl))
+            {
+                // flightradar24 connection status details
+                if (ImGui::FilteredLabel("Connection Status", sFilter)) {
+                    if (const LTChannel* pFR = LTFlightDataGetCh(DR_CHANNEL_FLIGHT_RADAR_ONLINE)) {
+                        ImGui::TextWrapped("%s", pFR->GetStatusText().c_str());
+                    } else {
+                        ImGui::TextUnformatted("Off");
+                    }
+                    ImGui::TableNextCell();
+                }
+                
+                if (!*sFilter) ImGui::TreePop();
+            }
+
             // --- OpenSky ---
             if (ImGui::TreeNodeCbxLinkHelp("OpenSky Network", nCol,
                                            DR_CHANNEL_OPEN_SKY_ONLINE, "Enable OpenSky tracking data",
