@@ -21,14 +21,6 @@
 
 // All includes are collected in one header
 #include "LTFlightRadar.h"
-#include "Constants.h"
-#include "CoordCalc.h"
-#include "LTChannel.h"
-#include "parson.h"
-#include <cmath>
-#include <curl/curl.h>
-#include <string>
-#include <vector>
 
 // Constructor
 FlightRadarConnection::FlightRadarConnection () :
@@ -182,14 +174,14 @@ bool FlightRadarConnection::ProcessFetchedData()
             // Create the fdKey
             LTFlightData::FDKeyTy fdKey(LTFlightData::KEY_ICAO, icao);
 
-            // AC on ground?
-            bool onGround = baroAlt_ft <= 20; // random threshold. fr24 sets alt to 0 on ground
 
             // Position information
             const double geoAlt_ft = BaroAltToGeoAlt_ft(baroAlt_ft, dataRefs.GetPressureHPA());
             positionTy acPos(lat, lon, geoAlt_ft * M_per_FT, posTime, track);
+
+            // AC on ground?
+            bool onGround = geoAlt_ft <= 0; // fr24 sets alt to 0 on ground
             acPos.f.onGrnd = onGround ? GND_ON : GND_OFF;
-            acPos.heading() = track;
 
             // Calculate the distance to the camera
             double dist = acPos.dist(viewPos);
@@ -223,7 +215,7 @@ bool FlightRadarConnection::ProcessFetchedData()
             dyn.heading = track;
             dyn.spd = speed;
             dyn.vsi = vertSpeed;
-            dyn.ts = now;
+            dyn.ts = posTime;
             dyn.pChannel = this;
 
             // Update data
