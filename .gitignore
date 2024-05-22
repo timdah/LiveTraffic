@@ -8,10 +8,6 @@
 # Build directories
 build*/*
 cmake-build-debug/
-!build-lin/lin_x64/
-!build-win/win_x64/
-!build-mac-arm/mac_x64/
-!build-mac-x86/mac_x64/
 
 # Generated documentation
 docs/html/
